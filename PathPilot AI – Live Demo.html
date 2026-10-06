@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PathPilot AI – Live Demo</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f6fb;--card:#fff;--ink:#1c2340;--mut:#6b7392;--pri:#4f46e5;--ok:#10b981;--warn:#f59e0b;--bd:#e3e7f2}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1226;--card:#1a1e3a;--ink:#eef0ff;--mut:#9aa1c7;--bd:#2b3055}}
+:root[data-theme="dark"]{--bg:#0f1226;--card:#1a1e3a;--ink:#eef0ff;--mut:#9aa1c7;--bd:#2b3055}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#4f46e5,#9333ea);color:#fff;padding:26px 20px 34px;text-align:center}
+header h1{margin:0;font-size:28px}header p{margin:6px 0 0;opacity:.9}
+main{max-width:980px;margin:-20px auto 40px;padding:0 14px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;box-shadow:0 4px 18px #0001}
+h2{margin:0 0 10px;font-size:18px}label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
+input,textarea,select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.row{grid-template-columns:1fr}}
+button{margin:16px 8px 0 0;padding:11px 22px;border:0;border-radius:8px;background:var(--pri);color:#fff;font-weight:600;font-size:15px;cursor:pointer}
+button.alt{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+.bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:linear-gradient(90deg,#4f46e5,#10b981)}
+.chip{display:inline-block;padding:3px 10px;margin:2px;border-radius:20px;font-size:12px}.ok{background:#10b98122;color:var(--ok)}.miss{background:#f59e0b22;color:var(--warn)}
+.top{border:2px solid var(--pri)}.badge{float:right;font-weight:700;color:var(--pri);font-size:20px}
+.step{border-left:3px solid var(--pri);padding:4px 0 12px 14px;margin-left:6px}.step small{color:var(--mut)}.step a{color:var(--pri)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:8px;border-bottom:1px solid var(--bd);text-align:left}
+.hide{display:none}
+</style></head><body>
+<header><h1>🧭 PathPilot AI</h1><p>Intelligent Career Recommendation System — live demo</p></header>
+<main>
+<form class="card" id="f"><h2>Student Profile</h2>
+ <div class="row"><div><label>Name</label><input name="name" required placeholder="e.g. Priya"></div>
+ <div><label>Preferred work area</label><select name="pref"><option value="">Any</option><option>programming</option><option>data</option><option>ai</option><option>web</option><option>security</option></select></div></div>
+ <label>Skills (comma separated)</label><input name="skills" placeholder="Java, SQL, Git, Python">
+ <label>Certifications</label><input name="certs" placeholder="Oracle Java Associate, Google Data Analytics (SQL, Excel)">
+ <label>Projects</label><textarea name="projects" rows="3" placeholder="Library system using Java, OOP and MySQL"></textarea>
+ <label>Interests</label><input name="interests" placeholder="machine learning, data, web design">
+ <button>Analyze My Career Path</button><button type="button" class="alt" id="demo">Load demo student</button></form>
+<section id="out" class="hide" style="display:grid;gap:16px">
+ <div class="card"><h2>Recommended Careers</h2><div id="res"></div></div>
+ <div class="card"><h2>🗺️ Learning Roadmap <small id="rt" style="color:var(--mut);font-weight:400"></small></h2><div id="road"></div></div>
+</section>
+<div class="card"><h2>Recent Analyses</h2><div class="tw"><table id="hist"></table></div></div>
+</main>
+<script>
+const C=[
+{n:'Software Developer',d:'Designs, builds and maintains software systems and backend services.',t:'programming,software,coding,backend',s:{'Java':5,'Data Structures':5,'OOP':4,'SQL':3,'Git':3,'REST APIs':3}},
+{n:'Data Analyst',d:'Turns raw data into insights using SQL, statistics and dashboards.',t:'data,analytics,business,statistics',s:{'SQL':5,'Excel':4,'Statistics':5,'Data Visualization':4,'Python':4}},
+{n:'AI Engineer',d:'Builds and deploys machine-learning and deep-learning models.',t:'ai,machine learning,ml,research,deep learning',s:{'Python':5,'Machine Learning':5,'Deep Learning':4,'TensorFlow':3,'Linear Algebra':3,'Statistics':3,'Data Structures':2}},
+{n:'Web Developer',d:'Creates responsive, interactive websites and web apps.',t:'web,frontend,design,ui',s:{'HTML':5,'CSS':4,'JavaScript':5,'REST APIs':3,'Git':3}},
+{n:'Cybersecurity Analyst',d:'Protects systems and networks from threats and vulnerabilities.',t:'security,cyber,hacking,network',s:{'Networking':5,'Linux':4,'Cryptography':4,'Python':3,'SQL':2}}];
+const R={java:['Java Programming (dev.java)','https://dev.java/learn/',6],python:['Python for Everybody','https://www.coursera.org/specializations/python',5],sql:['SQLBolt','https://sqlbolt.com',3],
+'data structures':['NeetCode Roadmap','https://neetcode.io/roadmap',8],git:['Pro Git Book','https://git-scm.com/book',2],oop:['OOP Principles in Java','https://dev.java/learn/',3],
+html:['MDN HTML Basics','https://developer.mozilla.org/docs/Learn/HTML',2],css:['MDN CSS First Steps','https://developer.mozilla.org/docs/Learn/CSS',3],
+javascript:['JavaScript.info','https://javascript.info',5],statistics:['Khan Academy Statistics','https://www.khanacademy.org/math/statistics-probability',5],
+'machine learning':['ML Specialization (Andrew Ng)','https://www.coursera.org/specializations/machine-learning-introduction',8],'deep learning':['Deep Learning Specialization','https://www.deeplearning.ai',8],
+networking:['Networking Fundamentals','https://www.netacad.com',5],cryptography:['Cryptography I (Stanford)','https://www.coursera.org/learn/crypto',6]};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mentions=(txt,k)=>new RegExp('(?<![a-z0-9])'+k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![a-z0-9])').test(txt.toLowerCase());
+const phase=w=>w>=5?'Phase 1: Foundations':w>=3?'Phase 2: Core Skills':'Phase 3: Advanced';
+function analyze(skills,certs,projects,interests){
+ const have=new Set(skills.toLowerCase().split(',').map(s=>s.trim()));
+ return C.map(c=>{let got=0,tot=0;const ok=[],miss=[];
+  for(const [k,w] of Object.entries(c.s)){tot+=w;
+   const cr=have.has(k.toLowerCase())?1:mentions(projects,k)?.8:mentions(certs,k)?.6:0;got+=w*cr;(cr?ok:miss).push(k)}
+  miss.sort((a,b)=>c.s[b]-c.s[a]);
+  const fit=c.t.split(',').some(t=>interests.toLowerCase().includes(t.trim()));
+  return {c,score:Math.round(80*got/tot+(fit?20:0)),ok,miss}}).sort((a,b)=>b.score-a.score)}
+const chips=(a,c)=>a.length?a.map(x=>`<span class="chip ${c}">${esc(x)}</span>`).join(''):'<span class="chip ok">none</span>';
+const H=[];const $=s=>document.querySelector(s);
+function hist(){$('#hist').innerHTML='<tr><th>Student</th><th>Top Career</th><th>Match</th><th>Time</th></tr>'+(H.length?H.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}%</td><td>${r[3]}</td></tr>`).join(''):'<tr><td colspan="4">No analyses yet</td></tr>')}
+$('#demo').onclick=()=>{const f=$('#f');f.name.value='Priya';f.skills.value='Java, SQL, Git';f.certs.value='Oracle Java Associate';
+ f.projects.value='Library management system using Java, OOP and MySQL';f.interests.value='programming, backend';f.pref.value='programming'};
+$('#f').onsubmit=e=>{e.preventDefault();const f=e.target;
+ const rs=analyze(f.skills.value,f.certs.value,f.projects.value,f.interests.value+','+f.pref.value);
+ $('#out').classList.remove('hide');
+ $('#res').innerHTML=rs.map((r,i)=>`<div class="card ${i?'':'top'}" style="margin-bottom:12px"><span class="badge">${r.score}%</span>
+  <b>${i?'':'⭐ Best Match: '}${esc(r.c.n)}</b><p style="margin:4px 0;color:var(--mut)">${esc(r.c.d)}</p>
+  <div class="bar"><i style="width:${r.score}%"></i></div>✅ ${chips(r.ok,'ok')}<br>⚠️ Missing: ${chips(r.miss,'miss')}</div>`).join('');
+ const top=rs[0];$('#rt').textContent='— to become a '+top.c.n;let total=0;
+ $('#road').innerHTML=top.miss.length?top.miss.map(s=>{const r=R[s.toLowerCase()]||['Learn '+s,'https://www.google.com/search?q=learn+'+encodeURIComponent(s),3];total+=r[2];
+  return `<div class="step"><small>${phase(top.c.s[s])} · ~${r[2]} weeks</small><br><b>${esc(s)}</b> — <a target="_blank" rel="noopener" href="${r[1]}">${esc(r[0])}</a></div>`}).join('')+`<b>Estimated total: ${total} weeks</b>`:'🎉 You already cover every required skill!';
+ H.unshift([f.name.value,top.c.n,top.score,new Date().toLocaleTimeString()]);H.length=Math.min(H.length,8);hist();
+ $('#out').scrollIntoView({behavior:'smooth'})};
+hist();
+</script></body></html>
